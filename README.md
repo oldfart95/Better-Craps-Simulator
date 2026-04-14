@@ -4,6 +4,8 @@ Better Craps Simulator is a board-first craps strategy trainer built with React,
 
 Live site target: `https://oldfart95.github.io/Better-Craps-Simulator/`
 
+Disclaimer: this project is for entertainment and educational use only. It does not provide financial, gambling, or risk-management advice, does not guarantee results, and any use of the simulator is at the user's own discretion and responsibility.
+
 ## Features
 
 - Authentic craps felt with clickable wager zones

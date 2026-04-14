@@ -442,6 +442,21 @@ h3 {
   align-self: start;
 }
 
+.site-disclaimer {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  background: rgba(20, 16, 19, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.site-disclaimer strong {
+  color: var(--gold-bright);
+}
+
 .recap-card {
   border-radius: 1.2rem;
   padding: 0.85rem;
@@ -728,5 +743,11 @@ h3 {
   .compact-stats,
   .point-grid {
     grid-template-columns: 1fr;
+  }
+
+  .site-disclaimer {
+    margin-top: 0.7rem;
+    padding: 0.75rem 0.8rem;
+    font-size: 0.76rem;
   }
 }

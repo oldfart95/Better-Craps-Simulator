@@ -241,6 +241,12 @@ export default function App() {
           onExportCsv={() => batch && downloadText('craps-batch.csv', exportBatchCsv(batch), 'text/csv')}
         />
       )}
+
+      <footer className="site-disclaimer">
+        <strong>Disclaimer:</strong> This simulator is provided for entertainment and educational use only. It does not
+        provide financial, gambling, or risk-management advice, makes no guarantee of outcomes, and use of the tool is
+        entirely at your own discretion and responsibility.
+      </footer>
     </div>
   );
 }
