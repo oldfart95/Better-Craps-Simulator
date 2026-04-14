@@ -18,7 +18,7 @@ export type NumberTarget = PointNumber | 6 | 8;
 export type BetTarget = PointNumber | PropTarget | null;
 export type BetPhase = 'active' | 'moved';
 export type PlayerKind = 'human' | 'ai';
-export type ViewKey = 'table' | 'lab' | 'analytics';
+export type ViewKey = 'table' | 'lab' | 'analytics' | 'booklet';
 export type ZoneGroup = 'line' | 'center' | 'numbers' | 'hardways' | 'field' | 'props';
 export type CoachingTone = 'good' | 'warn' | 'neutral';
 

@@ -6,6 +6,7 @@ import { createAnalyticsCards, exportBatchCsv, histogramFromRolls } from './pres
 import { buildCoachPrompts, buildCompactStats } from './training/coach';
 import { defaultPreferences, loadPreferences, savePreferences } from './utils/storage';
 import { AnalyticsView } from './ui/views/AnalyticsView';
+import { BookletView } from './ui/views/BookletView';
 import { LabView } from './ui/views/LabView';
 import { TableView } from './ui/views/TableView';
 
@@ -159,6 +160,7 @@ export default function App() {
         <nav className="top-bar__nav">
           <button className={view === 'table' ? 'active' : ''} onClick={() => setView('table')}>Live Table</button>
           <button className={view === 'lab' ? 'active' : ''} onClick={() => setView('lab')}>Strategy Lab</button>
+          <button className={view === 'booklet' ? 'active' : ''} onClick={() => setView('booklet')}>Booklet</button>
           <button className={view === 'analytics' ? 'active' : ''} onClick={() => setView('analytics')}>Analytics</button>
         </nav>
       </header>
@@ -217,6 +219,8 @@ export default function App() {
           onApply={rebuildSession}
         />
       )}
+
+      {view === 'booklet' && <BookletView />}
 
       {view === 'analytics' && (
         <AnalyticsView
