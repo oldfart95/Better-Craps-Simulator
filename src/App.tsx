@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createBatchResult, createInitialState, getBoardZones, getHumanBetForZone, getHumanPlayer, getLegalActionSet, getOddsTargetsForPlayer, placeBet, removeBet, advanceRoll } from './engine/gameEngine';
-import { GameState, PersistedPreferences, ViewKey } from './engine/types';
+import { GameState, PersistedPreferences, SeatPosition, ViewKey } from './engine/types';
 import { RNG } from './engine/rng';
 import { createAnalyticsCards, exportBatchCsv, histogramFromRolls } from './presentation/analytics';
 import { buildCoachPrompts, buildCompactStats } from './training/coach';
@@ -183,6 +183,21 @@ export default function App() {
           onSetAutoRollMs={(autoRollMs) => setPreferences((current) => ({ ...current, autoRollMs }))}
           onSetCompactStatsExpanded={(compactStatsExpanded) => setPreferences((current) => ({ ...current, compactStatsExpanded }))}
           onAddOdds={handleAddOdds}
+          onSeatPositionChange={(seatKey, position: SeatPosition) =>
+            setPreferences((current) => ({
+              ...current,
+              seatPositions: {
+                ...current.seatPositions,
+                [seatKey]: position
+              }
+            }))
+          }
+          onResetSeatPositions={() =>
+            setPreferences((current) => ({
+              ...current,
+              seatPositions: defaultPreferences.seatPositions
+            }))
+          }
           oddsTargets={oddsTargets}
         />
       )}

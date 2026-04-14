@@ -21,6 +21,8 @@ interface TableViewProps {
   onSetAutoRollMs: (value: number) => void;
   onSetCompactStatsExpanded: (expanded: boolean) => void;
   onAddOdds: (baseId: string) => void;
+  onSeatPositionChange: (seatKey: string, position: { x: number; y: number }) => void;
+  onResetSeatPositions: () => void;
   oddsTargets: Array<{ baseId: string; label: string; target: number | null }>;
 }
 
@@ -43,6 +45,8 @@ export function TableView({
   onSetAutoRollMs,
   onSetCompactStatsExpanded,
   onAddOdds,
+  onSeatPositionChange,
+  onResetSeatPositions,
   oddsTargets
 }: TableViewProps) {
   const selectedZone = zones.find((zone) => zone.id === selectedZoneId) ?? zones[0];
@@ -60,6 +64,7 @@ export function TableView({
             <p className="subtle">Authentic board first, coaching second. Keep the layout clean and legal.</p>
           </div>
           <div className="header-actions">
+            <button className="ghost" onClick={onResetSeatPositions}>Reset Seats</button>
             <button className="neutral" onClick={onReset}>New Session</button>
             <button className="accent" onClick={onRoll}>Roll Dice</button>
           </div>
@@ -123,7 +128,7 @@ export function TableView({
               })}
             </div>
 
-            <SeatRail state={state} />
+            <SeatRail state={state} positions={preferences.seatPositions} onPositionChange={onSeatPositionChange} />
           </div>
         </div>
 

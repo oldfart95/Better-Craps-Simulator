@@ -166,10 +166,16 @@ export interface EngineConfig {
   humanName?: string;
 }
 
+export interface SeatPosition {
+  x: number;
+  y: number;
+}
+
 export interface PersistedPreferences {
   chipDenom: number;
   autoRollMs: number;
   trainingHighlights: boolean;
   guidedPrompts: boolean;
   compactStatsExpanded: boolean;
+  seatPositions: Record<string, SeatPosition>;
 }

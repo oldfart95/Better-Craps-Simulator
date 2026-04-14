@@ -7,7 +7,15 @@ export const defaultPreferences: PersistedPreferences = {
   autoRollMs: 900,
   trainingHighlights: true,
   guidedPrompts: true,
-  compactStatsExpanded: false
+  compactStatsExpanded: false,
+  seatPositions: {
+    '0': { x: 39, y: 2 },
+    '1': { x: 79, y: 18 },
+    '2': { x: 80, y: 67 },
+    '3': { x: 39, y: 83 },
+    '4': { x: 1, y: 67 },
+    '5': { x: 1, y: 18 }
+  }
 };
 
 export function loadPreferences() {
