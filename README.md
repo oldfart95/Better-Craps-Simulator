@@ -2,6 +2,8 @@
 
 Better Craps Simulator is a board-first craps strategy trainer built with React, TypeScript, and Vite. It focuses on an authentic-feeling table layout, compact coaching-oriented stats, and a separate analytics/study surface so the live table stays polished instead of turning into a raw dashboard.
 
+Live site target: `https://oldfart95.github.io/Better-Craps-Simulator/`
+
 ## Features
 
 - Authentic craps felt with clickable wager zones
@@ -31,3 +33,11 @@ npm run test
 
 - `npm test`
 - `npm run build`
+
+## GitHub Pages
+
+This repo is configured for GitHub Pages deployment from the `main` branch through GitHub Actions.
+
+1. In GitHub repo settings, open `Settings -> Pages`.
+2. Set the source to `GitHub Actions`.
+3. Push to `main` and the workflow in `.github/workflows/deploy-pages.yml` will build and publish the app.
