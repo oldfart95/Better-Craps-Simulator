@@ -2,13 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createBatchResult, createInitialState, getBoardZones, getHumanBetForZone, getHumanPlayer, getLegalActionSet, getOddsTargetsForPlayer, placeBet, removeBet, advanceRoll } from './engine/gameEngine';
 import { GameState, PersistedPreferences, SeatPosition, ViewKey } from './engine/types';
 import { RNG } from './engine/rng';
-import { createAnalyticsCards, exportBatchCsv, histogramFromRolls } from './presentation/analytics';
+import { createAnalyticsCards, createSessionExportFiles, createSessionTextureMetrics, createStrategyComparisonRows, exportBatchCsv, histogramFromRolls } from './presentation/analytics';
 import { buildCoachPrompts, buildCompactStats } from './training/coach';
 import { defaultPreferences, loadPreferences, savePreferences } from './utils/storage';
 import { AnalyticsView } from './ui/views/AnalyticsView';
 import { BookletView } from './ui/views/BookletView';
 import { LabView } from './ui/views/LabView';
 import { TableView } from './ui/views/TableView';
+import { strategyProfileList } from './training/strategies';
 
 const zones = getBoardZones();
 
@@ -72,6 +73,8 @@ export default function App() {
   const analyticsCards = useMemo(() => createAnalyticsCards(state), [state]);
   const histogram = useMemo(() => histogramFromRolls(state.rollHistory), [state.rollHistory]);
   const oddsTargets = useMemo(() => getOddsTargetsForPlayer(state, human.id), [state, human.id]);
+  const sessionTexture = useMemo(() => createSessionTextureMetrics(state), [state]);
+  const comparisonRows = useMemo(() => createStrategyComparisonRows(state), [state]);
 
   const rebuildSession = () => {
     rngRef.current = new RNG(seed);
@@ -228,6 +231,9 @@ export default function App() {
           cards={analyticsCards}
           histogram={histogram}
           batch={batch}
+          texture={sessionTexture}
+          comparisonRows={comparisonRows}
+          strategyProfiles={strategyProfileList}
           onRunBatch={() =>
             setBatch(
               createBatchResult({
@@ -243,6 +249,11 @@ export default function App() {
           }
           onExportJson={() => batch && downloadText('craps-batch.json', JSON.stringify(batch, null, 2), 'application/json')}
           onExportCsv={() => batch && downloadText('craps-batch.csv', exportBatchCsv(batch), 'text/csv')}
+          onExportSessionCsv={() => {
+            for (const file of createSessionExportFiles(state)) {
+              downloadText(file.filename, file.content, 'text/csv');
+            }
+          }}
         />
       )}
 

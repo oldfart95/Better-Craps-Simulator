@@ -21,6 +21,13 @@ export type PlayerKind = 'human' | 'ai';
 export type ViewKey = 'table' | 'lab' | 'analytics' | 'booklet';
 export type ZoneGroup = 'line' | 'center' | 'numbers' | 'hardways' | 'field' | 'props';
 export type CoachingTone = 'good' | 'warn' | 'neutral';
+export type AIArchetypeKey =
+  | 'conservative_pass'
+  | 'moderate_pass_odds'
+  | 'place_bettor'
+  | 'iron_cross'
+  | 'darkside'
+  | 'hot_chaser';
 
 export interface TableRules {
   tableMin: number;
@@ -50,14 +57,22 @@ export interface PlayerStats {
   byBetType: Partial<Record<BetType, number>>;
 }
 
+export interface BankrollHistoryEntry {
+  rollNumber: number;
+  bankroll: number;
+  net: number;
+}
+
 export interface PlayerState {
   id: string;
   name: string;
   archetype: string;
   kind: PlayerKind;
+  startingBankroll: number;
   bankroll: number;
   bets: Bet[];
   stats: PlayerStats;
+  bankrollHistory: BankrollHistoryEntry[];
 }
 
 export interface RollResult {
@@ -81,8 +96,11 @@ export interface SessionStats {
 export interface RollLogEntry {
   id: string;
   rollNumber: number;
+  shooter: string;
   total: number;
   dice: string;
+  pointBefore: PointNumber | null;
+  pointAfter: PointNumber | null;
   summary: string;
   detail: string[];
 }
@@ -139,9 +157,58 @@ export interface BatchResult {
   rows: BatchSessionRow[];
 }
 
+export interface StrategyProfile {
+  key: AIArchetypeKey;
+  name: string;
+  summary: string;
+  howItPlays: string;
+  goal: string;
+  strengths: string[];
+  weaknesses: string[];
+  volatility: 'Low' | 'Medium' | 'High';
+  tablePreference: 'Hot' | 'Cold' | 'Either';
+  style: 'Right-side' | 'Dark-side' | 'Number-hunting' | 'Broad-coverage';
+}
+
+export interface SessionTextureMetrics {
+  totalRolls: number;
+  totalShooters: number;
+  averageRollsPerShooter: number;
+  longestHeater: number;
+  sevenOuts: number;
+  sevenOutRate: number;
+  recentSevenRate: number;
+  pointEstablishedTotal: number;
+  pointMadeTotal: number;
+  pointConversionRate: number;
+  shooterRhythm: string;
+  tablePressure: string;
+  varianceNote: string;
+}
+
+export interface StrategyComparisonRow {
+  playerId: string;
+  playerName: string;
+  archetype: string;
+  startingBankroll: number;
+  endingBankroll: number;
+  net: number;
+  peakBankroll: number;
+  maxDrawdown: number;
+  rank: number;
+  volatilityTag: 'Steady' | 'Balanced' | 'Swingy';
+  interpretation: string;
+}
+
+export interface CsvDownload {
+  filename: string;
+  content: string;
+}
+
 export interface GameState {
   rules: TableRules;
   seed: string;
+  startedAt: string;
   players: PlayerState[];
   shooterIndex: number;
   point: PointNumber | null;

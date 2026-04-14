@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { AI_ARCHETYPES } from '../../engine/constants';
 import { GameState, SeatPosition } from '../../engine/types';
 
 interface SeatRailProps {
@@ -67,7 +68,7 @@ export function SeatRail({ state, positions, onPositionChange }: SeatRailProps) 
           >
             <div className="seat-card__head">
               <strong>{player.name}</strong>
-              <span>{player.kind === 'human' ? 'Hero' : player.archetype.replace(/_/g, ' ')}</span>
+              <span>{player.kind === 'human' ? 'Hero' : (AI_ARCHETYPES[player.archetype as keyof typeof AI_ARCHETYPES]?.label ?? player.archetype.replace(/_/g, ' '))}</span>
             </div>
             <div className="seat-card__stack">${player.bankroll.toFixed(0)}</div>
             <div className="seat-card__meta">

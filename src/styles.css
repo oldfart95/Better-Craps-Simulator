@@ -504,7 +504,12 @@ h3 {
 .coach-list,
 .log-list,
 .batch-table,
-.batch-summary {
+.batch-summary,
+.comparison-list,
+.analytics-drawer,
+.texture-grid,
+.strategy-profile-grid,
+.strategy-badges {
   display: grid;
   gap: 0.6rem;
 }
@@ -529,6 +534,103 @@ h3 {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
+}
+
+.analytics-drawer {
+  margin-top: 0.9rem;
+}
+
+.analytics-drawer__section {
+  padding: 0.9rem;
+  border-radius: 1rem;
+  background: rgba(13, 10, 12, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.comparison-list,
+.strategy-profile-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.comparison-card,
+.strategy-profile-card,
+.texture-grid article {
+  border-radius: 1rem;
+  padding: 0.85rem;
+  background: rgba(13, 10, 12, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.comparison-card__top,
+.comparison-card__grid,
+.strategy-profile-card__head {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.comparison-card__top {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.comparison-card__top span,
+.strategy-profile-card__head span,
+.texture-grid article span {
+  color: var(--muted);
+}
+
+.comparison-card__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0.55rem 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.comparison-net {
+  font-weight: 700;
+}
+
+.comparison-net.positive {
+  color: var(--good);
+}
+
+.comparison-net.negative {
+  color: var(--warn);
+}
+
+.texture-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 0.65rem;
+}
+
+.texture-grid article strong {
+  display: block;
+  font-size: 1.2rem;
+  margin-bottom: 0.2rem;
+}
+
+.strategy-profile-card__head {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.strategy-profile-card p {
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.strategy-badges {
+  justify-items: end;
+}
+
+.strategy-badges span {
+  width: fit-content;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(201, 163, 92, 0.12);
+  border: 1px solid rgba(235, 204, 133, 0.18);
+  font-size: 0.72rem;
 }
 
 .booklet-toolbar,
@@ -832,7 +934,10 @@ h3 {
   }
 
   .compact-stats,
-  .point-grid {
+  .point-grid,
+  .texture-grid,
+  .comparison-card__grid,
+  .strategy-profile-card__head {
     grid-template-columns: 1fr;
   }
 

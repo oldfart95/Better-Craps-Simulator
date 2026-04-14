@@ -60,4 +60,17 @@ describe('craps engine', () => {
     expect(batch.rows).toHaveLength(4);
     expect(batch.summary.averageRolls).toBeGreaterThan(0);
   });
+
+  test('bankroll history and full roll logs grow with each roll', () => {
+    const state = createInitialState({ seed: 'history-seed' });
+    const rng = new RNG('history-seed');
+    rng.rollDice = () => ({ d1: 3, d2: 4, total: 7, hard: false });
+
+    advanceRoll(state, rng);
+    advanceRoll(state, rng);
+
+    expect(state.players[0].bankrollHistory).toHaveLength(3);
+    expect(state.logs).toHaveLength(2);
+    expect(state.logs[0].shooter).toBeTruthy();
+  });
 });

@@ -1,4 +1,4 @@
-import { BetZone, PointNumber, TableRules } from './types';
+import { AIArchetypeKey, BetZone, PointNumber, TableRules } from './types';
 
 export const POINT_NUMBERS: PointNumber[] = [4, 5, 6, 8, 9, 10];
 
@@ -50,11 +50,14 @@ export const BET_ZONES: BetZone[] = [
   { id: 'prop-boxcars12', label: 'Boxcars', type: 'prop', group: 'props', target: 'boxcars12', payout: '30:1', hint: 'One-roll prop.', layout: 'boxcars12' }
 ];
 
-export const AI_ARCHETYPES = {
+export const AI_ARCHETYPES: Record<
+  AIArchetypeKey,
+  { label: string; base: 'pass' | 'dontPass' | null; oddsRate: number; place: PointNumber[]; dark: boolean; props: number; field: number }
+> = {
   conservative_pass: { label: 'Conservative Pass', base: 'pass', oddsRate: 0.35, place: [] as PointNumber[], dark: false, props: 0.02, field: 0.04 },
-  moderate_pass_odds: { label: 'Pass + Odds', base: 'pass', oddsRate: 0.8, place: [6, 8] as PointNumber[], dark: false, props: 0.03, field: 0.08 },
+  moderate_pass_odds: { label: 'Moderate Pass + Odds', base: 'pass', oddsRate: 0.8, place: [6, 8] as PointNumber[], dark: false, props: 0.03, field: 0.08 },
   place_bettor: { label: 'Place Bettor', base: null, oddsRate: 0, place: [5, 6, 8, 9] as PointNumber[], dark: false, props: 0.05, field: 0.02 },
   iron_cross: { label: 'Iron Cross', base: 'pass', oddsRate: 0.25, place: [5, 6, 8] as PointNumber[], dark: false, props: 0.02, field: 0.75 },
   darkside: { label: 'Darkside', base: 'dontPass', oddsRate: 0.8, place: [] as PointNumber[], dark: true, props: 0.01, field: 0 },
   hot_chaser: { label: 'Hot Chaser', base: 'pass', oddsRate: 1, place: [5, 6, 8] as PointNumber[], dark: false, props: 0.1, field: 0.08 }
-} as const;
+};

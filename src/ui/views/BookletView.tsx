@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { strategyBook } from '../../training/booklet';
+import { strategyProfiles } from '../../training/strategies';
 
 type FilterKey = 'all' | 'basics' | 'common' | 'uncommon' | 'discipline';
 
@@ -88,6 +89,35 @@ export function BookletView() {
           </div>
 
           <div className="booklet-sections">
+            {page.strategyProfiles && (
+              <section className="booklet-section">
+                <h4>AI Strategy Cards</h4>
+                <div className="strategy-profile-grid">
+                  {page.strategyProfiles.map((key) => {
+                    const profile = strategyProfiles[key];
+                    return (
+                      <article className="strategy-profile-card" key={profile.key}>
+                        <div className="strategy-profile-card__head">
+                          <div>
+                            <strong>{profile.name}</strong>
+                            <span>{profile.summary}</span>
+                          </div>
+                          <div className="strategy-badges">
+                            <span>{profile.style}</span>
+                            <span>{profile.tablePreference} tables</span>
+                            <span>{profile.volatility} volatility</span>
+                          </div>
+                        </div>
+                        <p>{profile.howItPlays}</p>
+                        <p><strong>Trying to accomplish:</strong> {profile.goal}</p>
+                        <p><strong>Strengths:</strong> {profile.strengths.join(' • ')}</p>
+                        <p><strong>Weaknesses:</strong> {profile.weaknesses.join(' • ')}</p>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
             {page.sections.map((section) => (
               <section className="booklet-section" key={section.heading}>
                 <h4>{section.heading}</h4>

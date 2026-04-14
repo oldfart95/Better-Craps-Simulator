@@ -1,7 +1,9 @@
 import { AI_ARCHETYPES, BET_ZONES, DEFAULT_RULES, PAYOUTS, POINT_NUMBERS } from './constants';
 import {
+  AIArchetypeKey,
   BatchResult,
   BatchSessionRow,
+  BankrollHistoryEntry,
   Bet,
   BetPlacementInput,
   BetTarget,
@@ -28,14 +30,17 @@ function uid(prefix: string) {
 }
 
 function createPlayer(name: string, kind: 'human' | 'ai', archetype: string, bankroll: number): PlayerState {
+  const initialHistory: BankrollHistoryEntry = { rollNumber: 0, bankroll, net: 0 };
   return {
     id: uid('player'),
     name,
     kind,
     archetype,
+    startingBankroll: bankroll,
     bankroll,
     bets: [],
-    stats: { net: 0, wins: 0, losses: 0, byBetType: {} }
+    stats: { net: 0, wins: 0, losses: 0, byBetType: {} },
+    bankrollHistory: [initialHistory]
   };
 }
 
@@ -53,6 +58,7 @@ export function createInitialState(config: EngineConfig = {}): GameState {
   return {
     rules,
     seed: config.seed ?? '',
+    startedAt: new Date().toISOString(),
     players,
     shooterIndex: 0,
     point: null,
@@ -462,7 +468,7 @@ function maybeAddOdds(state: GameState, player: PlayerState, baseType: BetType) 
 
 export function runAiTurns(state: GameState, rng: RNG) {
   for (const player of state.players.slice(1)) {
-    const profile = AI_ARCHETYPES[player.archetype as keyof typeof AI_ARCHETYPES];
+    const profile = AI_ARCHETYPES[player.archetype as AIArchetypeKey];
     if (!profile) continue;
     const unit = clampAmount(Math.max(state.rules.tableMin, Math.round(state.rules.tableMin * (0.8 + rng.next()))), state.rules);
 
@@ -503,6 +509,8 @@ export function advanceRoll(state: GameState, rng: RNG) {
   runAiTurns(state, rng);
 
   const before = state.players[0].bankroll;
+  const shooterName = state.players[state.shooterIndex].name;
+  const pointBefore = state.point;
   const roll = rng.rollDice();
   const detail: string[] = [];
 
@@ -544,12 +552,23 @@ export function advanceRoll(state: GameState, rng: RNG) {
   const entry: RollLogEntry = {
     id: uid('log'),
     rollNumber: state.stats.totalRolls,
+    shooter: shooterName,
     total: roll.total,
     dice: `${roll.d1} + ${roll.d2}`,
-    summary: `${state.players[state.shooterIndex].name} rolled ${roll.total}`,
+    pointBefore,
+    pointAfter: state.point,
+    summary: `${shooterName} rolled ${roll.total}`,
     detail
   };
-  state.logs = [entry, ...state.logs].slice(0, 30);
+  state.logs = [entry, ...state.logs];
+
+  for (const player of state.players) {
+    player.bankrollHistory.push({
+      rollNumber: state.stats.totalRolls,
+      bankroll: Math.round(player.bankroll * 100) / 100,
+      net: Math.round((player.bankroll - player.startingBankroll) * 100) / 100
+    });
+  }
 
   return roll;
 }

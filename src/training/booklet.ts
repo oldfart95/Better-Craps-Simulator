@@ -1,8 +1,11 @@
+import { AIArchetypeKey } from '../engine/types';
+
 export interface StrategyBookPage {
   id: string;
   title: string;
   category: 'basics' | 'common' | 'uncommon' | 'discipline';
   summary: string;
+  strategyProfiles?: AIArchetypeKey[];
   sections: Array<{
     heading: string;
     body: string[];
@@ -26,7 +29,7 @@ export const strategyBook: StrategyBookPage[] = [
       {
         heading: 'Two anchor ideas',
         body: [
-          'Pass line means you are riding with the shooter. Don’t pass means you are fading the shooter.',
+          "Pass line means you are riding with the shooter. Don't pass means you are fading the shooter.",
           'Most study plans begin by learning the line bets, then learning odds, then deciding whether to add place bets or stay simple.'
         ]
       },
@@ -34,7 +37,7 @@ export const strategyBook: StrategyBookPage[] = [
         heading: 'What strategy really means here',
         body: [
           'Craps strategy is mostly about choosing efficient bets and avoiding expensive ones. The dice are random either way.',
-          'That makes discipline and layout control more important than “predicting” the next roll.'
+          'That makes discipline and layout control more important than "predicting" the next roll.'
         ]
       }
     ]
@@ -84,7 +87,7 @@ export const strategyBook: StrategyBookPage[] = [
         heading: 'How people use it',
         body: [
           'Some players combine pass line plus odds with place 6 and 8. Others wait for a point, then simply place the 6 and 8 without bothering with the line.',
-          'This is often the first “extra action” system beginners study after learning the basic line game.'
+          'This is often the first "extra action" system beginners study after learning the basic line game.'
         ]
       },
       {
@@ -117,7 +120,7 @@ export const strategyBook: StrategyBookPage[] = [
       {
         heading: 'Why it is not a pure value play',
         body: [
-          'The field is a weaker bet than the core low-edge wagers, so the system pays for that “always something happening” feeling.',
+          'The field is a weaker bet than the core low-edge wagers, so the system pays for that "always something happening" feeling.',
           'It is a useful system to study because it teaches the difference between table excitement and mathematical efficiency.'
         ]
       }
@@ -127,12 +130,12 @@ export const strategyBook: StrategyBookPage[] = [
     id: 'dark-side',
     title: 'Dark-Side Play',
     category: 'uncommon',
-    summary: 'A structured way to bet against the shooter using don’t pass, don’t come, and dark-side odds.',
+    summary: "A structured way to bet against the shooter using don't pass, don't come, and dark-side odds.",
     sections: [
       {
         heading: 'Core idea',
         body: [
-          'Instead of riding with the shooter, you start with don’t pass, then may add odds after a point is established. Later, you can add don’t come bets to create multiple seven-favorable positions.'
+          "Instead of riding with the shooter, you start with don't pass, then may add odds after a point is established. Later, you can add don't come bets to create multiple seven-favorable positions."
         ]
       },
       {
@@ -145,6 +148,22 @@ export const strategyBook: StrategyBookPage[] = [
         heading: 'Common beginner mistake',
         body: [
           'Mixing right-side and wrong-side bets emotionally instead of intentionally. If you are studying a dark-side plan, keep the layout coherent instead of hedging every feeling.'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ai-strategy-profiles',
+    title: 'AI Strategy Profiles',
+    category: 'common',
+    summary: 'Plain-English breakdowns of the table personalities driving the AI seats in this simulator.',
+    strategyProfiles: ['conservative_pass', 'moderate_pass_odds', 'place_bettor', 'iron_cross', 'darkside', 'hot_chaser'],
+    sections: [
+      {
+        heading: 'How to use these profiles',
+        body: [
+          'These profiles describe what each AI archetype is trying to do at the table, not a promise of what will happen in a short session.',
+          'Compare the style notes to the session texture in Analytics. A strategy can look brilliant or terrible for a while simply because the shooters were unusually hot, cold, or erratic.'
         ]
       }
     ]
