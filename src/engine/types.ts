@@ -36,6 +36,8 @@ export interface TableRules {
   placeWorkOnComeout: boolean;
   big68Enabled: boolean;
   propBetsEnabled: boolean;
+  beginnerMode: boolean;
+  freePractice: boolean;
   maxOddsMultiplier: Record<PointNumber, number>;
 }
 
@@ -243,6 +245,8 @@ export interface PersistedPreferences {
   autoRollMs: number;
   trainingHighlights: boolean;
   guidedPrompts: boolean;
+  beginnerMode: boolean;
+  freePractice: boolean;
   compactStatsExpanded: boolean;
   seatPositions: Record<string, SeatPosition>;
 }

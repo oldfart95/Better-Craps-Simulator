@@ -7,6 +7,8 @@ export const defaultPreferences: PersistedPreferences = {
   autoRollMs: 900,
   trainingHighlights: true,
   guidedPrompts: true,
+  beginnerMode: true,
+  freePractice: false,
   compactStatsExpanded: false,
   seatPositions: {
     '0': { x: 39, y: 2 },
