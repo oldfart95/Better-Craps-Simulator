@@ -128,7 +128,11 @@ export function removeBet(state: GameState, playerId: string, betId: string) {
   if (!player) return false;
   const bet = player.bets.find((candidate) => candidate.id === betId);
   if (!bet) return false;
-  if (!state.rules.freePractice) player.bankroll += bet.amount;
+  const removedBets = player.bets.filter((candidate) => candidate.id === betId || candidate.baseId === betId);
+  if (!state.rules.freePractice) {
+    const refund = removedBets.reduce((total, candidate) => total + candidate.amount, 0);
+    player.bankroll += refund;
+  }
   player.bets = player.bets.filter((candidate) => candidate.id !== betId && candidate.baseId !== betId);
   return true;
 }
@@ -270,7 +274,11 @@ export function getOddsTargetsForPlayer(state: GameState, playerId: string) {
   const player = state.players.find((candidate) => candidate.id === playerId);
   if (!player) return [];
   return player.bets
-    .filter((bet) => ['pass', 'dontPass', 'come', 'dontCome'].includes(bet.type))
+    .filter((bet) => {
+      if (!['pass', 'dontPass', 'come', 'dontCome'].includes(bet.type)) return false;
+      if ((bet.type === 'come' || bet.type === 'dontCome') && bet.phase !== 'moved') return false;
+      return true;
+    })
     .map((bet) => ({
       baseId: bet.id,
       label: `${bet.type === 'pass' ? 'Pass' : bet.type === 'dontPass' ? "Don't Pass" : bet.type === 'come' ? 'Come' : "Don't Come"} odds ${bet.target ?? state.point ?? ''}`.trim(),

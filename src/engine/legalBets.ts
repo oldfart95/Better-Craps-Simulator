@@ -47,6 +47,9 @@ export function getLegalActionSet(state: GameState, playerId: string, input: Bet
       if (!input.baseId) return { ok: false, reason: 'Odds must attach to a line or moved come bet.' };
       const base = player.bets.find((bet) => bet.id === input.baseId);
       if (!base) return { ok: false, reason: 'Base bet not found.' };
+      if ((base.type === 'come' || base.type === 'dontCome') && base.phase !== 'moved') {
+        return { ok: false, reason: 'Come odds must wait until the bet travels to a number.' };
+      }
       const target = (base.target ?? state.point) as PointNumber | null;
       if (!target) return { ok: false, reason: 'Odds require a point or moved come bet.' };
       const maxOdds = state.rules.maxOddsMultiplier[target] * base.amount;

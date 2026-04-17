@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { advanceRoll, createBatchResult, createInitialState, exportAuditReport, getLegalActionSet, placeBet } from '../gameEngine';
+import { advanceRoll, createBatchResult, createInitialState, exportAuditReport, getLegalActionSet, getOddsTargetsForPlayer, placeBet, removeBet } from '../gameEngine';
 import { RNG } from '../rng';
 import { checkRollInvariants } from '../audit';
 
@@ -55,6 +55,24 @@ describe('craps engine', () => {
     expect(result.ok).toBe(false);
   });
 
+  test('active come bet cannot take odds before it travels', () => {
+    const state = createInitialState({ seed: 'come-odds-gate' });
+    const hero = state.players[0];
+    placeBet(state, hero.id, { type: 'pass', amount: 10 });
+    const rng = new RNG('come-odds-gate');
+    rng.rollDice = () => ({ d1: 2, d2: 2, total: 4, hard: true });
+    advanceRoll(state, rng);
+
+    placeBet(state, hero.id, { type: 'come', amount: 10 });
+    const activeCome = hero.bets.find((bet) => bet.type === 'come');
+
+    expect(activeCome?.phase).toBe('active');
+    expect(getOddsTargetsForPlayer(state, hero.id).some((target) => target.baseId === activeCome?.id)).toBe(false);
+
+    const result = getLegalActionSet(state, hero.id, { type: 'odds', amount: 10, baseId: activeCome?.id, target: 4 });
+    expect(result.ok).toBe(false);
+  });
+
   test('batch summary returns stable aggregates', () => {
     const batch = createBatchResult({ seed: 'batch-seed' }, 4, 12);
     expect(batch.summary.sessions).toBe(4);
@@ -73,6 +91,25 @@ describe('craps engine', () => {
     expect(state.players[0].bankrollHistory).toHaveLength(3);
     expect(state.logs).toHaveLength(2);
     expect(state.logs[0].shooter).toBeTruthy();
+  });
+
+  test('removing a base bet refunds attached odds', () => {
+    const state = createInitialState({ seed: 'refund-odds' });
+    const hero = state.players[0];
+    placeBet(state, hero.id, { type: 'pass', amount: 10 });
+    const rng = new RNG('refund-odds');
+    rng.rollDice = () => ({ d1: 2, d2: 2, total: 4, hard: true });
+    advanceRoll(state, rng);
+
+    const base = hero.bets.find((bet) => bet.type === 'pass');
+    expect(base).toBeTruthy();
+    placeBet(state, hero.id, { type: 'odds', amount: 20, baseId: base?.id, target: 4 });
+    expect(hero.bankroll).toBe(970);
+
+    const removed = removeBet(state, hero.id, base!.id);
+    expect(removed).toBe(true);
+    expect(hero.bankroll).toBe(1000);
+    expect(hero.bets).toHaveLength(0);
   });
 
   test('audit mode records come-out point establishment with structured context', () => {
