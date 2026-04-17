@@ -1,5 +1,5 @@
 import { CHIP_DENOMS, POINT_NUMBERS } from '../../engine/constants';
-import { BetZone, GameState, PersistedPreferences } from '../../engine/types';
+import { BetZone, GameState, InvariantFailure, PersistedPreferences } from '../../engine/types';
 import { formatDice } from '../../engine/diceEngine';
 
 type AdvancedStats = {
@@ -28,11 +28,19 @@ interface TableViewProps {
   advancedStatsOpen: boolean;
   advancedStats: AdvancedStats;
   oddsTargets: Array<{ baseId: string; label: string; target: number | null }>;
+  auditMode: boolean;
+  auditSeed: string;
+  currentSeed: string;
+  invariantFailures: InvariantFailure[];
   onTapZone: (zoneId: string) => void;
   onSelectZone: (zoneId: string) => void;
   onRemoveSelected: () => void;
   onRoll: () => void;
   onNewSession: () => void;
+  onExportAudit: () => void;
+  onSetAuditMode: () => void;
+  onSetAuditSeed: (value: string) => void;
+  onRestartWithSeed: () => void;
   onPickChip: (amount: number) => void;
   onToggleAuto: () => void;
   onSetAutoRollMs: (value: number) => void;
@@ -71,11 +79,19 @@ export function TableView({
   advancedStatsOpen,
   advancedStats,
   oddsTargets,
+  auditMode,
+  auditSeed,
+  currentSeed,
+  invariantFailures,
   onTapZone,
   onSelectZone,
   onRemoveSelected,
   onRoll,
   onNewSession,
+  onExportAudit,
+  onSetAuditMode,
+  onSetAuditSeed,
+  onRestartWithSeed,
   onPickChip,
   onToggleAuto,
   onSetAutoRollMs,
@@ -243,6 +259,41 @@ export function TableView({
             <button className={preferences.beginnerMode ? 'active' : ''} onClick={onToggleBeginner}>Beginner</button>
             <button className={preferences.freePractice ? 'active' : ''} onClick={onToggleFreePractice}>Free practice</button>
           </section>
+
+          <section className="panel audit-panel">
+            <div className="panel-head">
+              <div>
+                <p className="eyebrow">Audit</p>
+                <h3>Replay + diagnostics</h3>
+              </div>
+              <button className={auditMode ? 'active' : ''} onClick={onSetAuditMode}>
+                {auditMode ? 'Audit on' : 'Audit off'}
+              </button>
+            </div>
+            <label className="seed-input">
+              Seed
+              <input value={auditSeed} onChange={(event) => onSetAuditSeed(event.target.value)} placeholder="session seed" />
+            </label>
+            <p className="audit-note">Current session seed: <strong>{currentSeed}</strong></p>
+            <div className="audit-actions">
+              <button className="neutral" onClick={onRestartWithSeed}>Restart seeded</button>
+              <button className="ghost" onClick={onExportAudit}>Export Audit JSON</button>
+            </div>
+          </section>
+
+          {invariantFailures.length > 0 && (
+            <section className="panel error-panel">
+              <p className="eyebrow">Invariant errors</p>
+              <h3>Audit flagged rule inconsistencies</h3>
+              <ul>
+                {invariantFailures.slice(-5).reverse().map((failure) => (
+                  <li key={`${failure.rollIndex}-${failure.code}`}>
+                    <strong>Roll {failure.rollIndex}</strong> {failure.message}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <section className="panel quick-strip">
             {compactStats.map((item) => (

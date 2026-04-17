@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { advanceRoll, createInitialState, getBoardZones, getHumanBetForZone, getHumanPlayer, getOddsTargetsForPlayer, placeBet, removeBet } from './engine/gameEngine';
+import { advanceRoll, createInitialState, exportAuditReport, getBoardZones, getHumanBetForZone, getHumanPlayer, getOddsTargetsForPlayer, placeBet, removeBet } from './engine/gameEngine';
 import { createAdvancedStats } from './engine/stats';
 import { buildUiExplanation } from './engine/uiState';
 import { GameState, PersistedPreferences } from './engine/types';
@@ -10,27 +10,31 @@ import { TableView } from './ui/views/TableView';
 
 const zones = getBoardZones();
 
+function createSession(preferences: PersistedPreferences, seed?: string, auditMode = false) {
+  return createInitialState({
+    seed,
+    auditMode,
+    aiCount: 4,
+    rules: {
+      startingBankroll: 1000,
+      tableMin: 5,
+      tableMax: 500,
+      beginnerMode: preferences.beginnerMode,
+      freePractice: preferences.freePractice
+    }
+  });
+}
+
 export default function App() {
-  const rngRef = useRef(new RNG(''));
   const [preferences, setPreferences] = useState<PersistedPreferences>(() => loadPreferences());
+  const [state, setState] = useState<GameState>(() => createSession(loadPreferences()));
+  const [seedDraft, setSeedDraft] = useState(() => state.seed);
+  const rngRef = useRef(new RNG(state.seed));
   const [autoRolling, setAutoRolling] = useState(false);
   const [selectedZoneId, setSelectedZoneId] = useState('pass-line');
   const [helpOpen, setHelpOpen] = useState(false);
   const [quickStatsOpen, setQuickStatsOpen] = useState(false);
   const [advancedStatsOpen, setAdvancedStatsOpen] = useState(false);
-  const [state, setState] = useState<GameState>(() =>
-    createInitialState({
-      seed: '',
-      aiCount: 4,
-      rules: {
-        startingBankroll: 1000,
-        tableMin: 5,
-        tableMax: 500,
-        beginnerMode: preferences.beginnerMode,
-        freePractice: preferences.freePractice
-      }
-    })
-  );
 
   useEffect(() => {
     savePreferences(preferences);
@@ -122,18 +126,27 @@ export default function App() {
     });
   };
 
-  const newSession = () => {
-    rngRef.current = new RNG('');
+  const startNewSession = (seed = seedDraft) => {
+    const nextState = createSession(preferences, seed, state.auditMode);
+    rngRef.current = new RNG(nextState.seed);
+    setSeedDraft(nextState.seed);
     setAutoRolling(false);
-    setState(
-      createInitialState({
-        aiCount: 4,
-        rules: {
-          beginnerMode: preferences.beginnerMode,
-          freePractice: preferences.freePractice
-        }
-      })
-    );
+    setState(nextState);
+  };
+
+  const handleExportAudit = () => {
+    const report = exportAuditReport(state);
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const link = window.document.createElement('a');
+    link.href = url;
+    link.download = `${report.sessionId}.json`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const newSession = () => {
+    startNewSession();
   };
 
   return (
@@ -152,11 +165,23 @@ export default function App() {
         advancedStatsOpen={advancedStatsOpen}
         advancedStats={advancedStats}
         oddsTargets={oddsTargets}
+        auditMode={state.auditMode}
+        auditSeed={seedDraft}
+        currentSeed={state.seed}
+        invariantFailures={state.audit.invariantFailures}
         onTapZone={handleTapZone}
         onSelectZone={setSelectedZoneId}
         onRemoveSelected={handleRemoveSelected}
         onRoll={() => mutateState((draft) => advanceRoll(draft, rngRef.current))}
         onNewSession={newSession}
+        onExportAudit={handleExportAudit}
+        onSetAuditMode={() =>
+          mutateState((draft) => {
+            draft.auditMode = !draft.auditMode;
+          })
+        }
+        onSetAuditSeed={setSeedDraft}
+        onRestartWithSeed={() => startNewSession(seedDraft)}
         onPickChip={(chipDenom) => setPreferences((current) => ({ ...current, chipDenom }))}
         onToggleAuto={() => setAutoRolling((current) => !current)}
         onSetAutoRollMs={(autoRollMs) => setPreferences((current) => ({ ...current, autoRollMs }))}

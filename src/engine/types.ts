@@ -17,10 +17,22 @@ export type PointNumber = 4 | 5 | 6 | 8 | 9 | 10;
 export type NumberTarget = PointNumber | 6 | 8;
 export type BetTarget = PointNumber | PropTarget | null;
 export type BetPhase = 'active' | 'moved';
+export type TablePhase = 'come-out' | 'point';
 export type PlayerKind = 'human' | 'ai';
 export type ViewKey = 'table' | 'lab' | 'analytics' | 'booklet';
 export type ZoneGroup = 'line' | 'center' | 'numbers' | 'hardways' | 'field' | 'props';
 export type CoachingTone = 'good' | 'warn' | 'neutral';
+export type RollContextKind =
+  | 'natural'
+  | 'craps'
+  | 'point_established'
+  | 'point_made'
+  | 'seven_out'
+  | 'point_cycle_continue'
+  | 'invalid_phase'
+  | 'invalid_result';
+export type BetResolutionOutcome = 'win' | 'lose' | 'push' | 'travel' | 'kept' | 'returned';
+export type RoundEndedBy = 'seven_out' | 'session_end' | 'in_progress';
 export type AIArchetypeKey =
   | 'conservative_pass'
   | 'moderate_pass_odds'
@@ -105,6 +117,89 @@ export interface RollLogEntry {
   pointAfter: PointNumber | null;
   summary: string;
   detail: string[];
+}
+
+export interface BetSnapshot {
+  id: string;
+  ownerId: string;
+  type: BetType;
+  amount: number;
+  target: BetTarget;
+  phase: BetPhase;
+  baseId: string | null;
+  worksOnComeout: boolean;
+}
+
+export interface BetResolutionRecord {
+  playerId: string;
+  playerName: string;
+  betId: string;
+  betType: BetType;
+  target: BetTarget;
+  outcome: BetResolutionOutcome;
+  amount: number;
+  payout: number;
+  bankrollDelta: number;
+  note: string;
+}
+
+export interface InvariantFailure {
+  sessionId: string;
+  rollIndex: number;
+  code: string;
+  message: string;
+}
+
+export interface RollAuditRecord {
+  sessionId: string;
+  rollIndex: number;
+  shooterId: string;
+  shooterName: string;
+  dice: [number, number];
+  total: number;
+  phaseBefore: TablePhase;
+  pointBefore: PointNumber | null;
+  phaseAfter: TablePhase;
+  pointAfter: PointNumber | null;
+  classification: RollContextKind;
+  detectedEvents: string[];
+  betsBefore: BetSnapshot[];
+  betsResolved: BetResolutionRecord[];
+  payouts: BetResolutionRecord[];
+  bankrollBefore: number;
+  bankrollAfter: number;
+  reasoning: string[];
+}
+
+export interface RoundSummary {
+  roundIndex: number;
+  shooterId: string;
+  shooterName: string;
+  pointEstablished: PointNumber[];
+  endedBy: RoundEndedBy;
+  rollCount: number;
+  totalsSequence: number[];
+  netResult: number;
+}
+
+export interface RoundTracker {
+  roundIndex: number;
+  shooterId: string;
+  shooterName: string;
+  pointEstablished: PointNumber[];
+  rollCount: number;
+  totalsSequence: number[];
+  bankrollBefore: number;
+}
+
+export interface AuditState {
+  sessionId: string;
+  rngSeed: string;
+  rolls: RollAuditRecord[];
+  rounds: RoundSummary[];
+  invariantFailures: InvariantFailure[];
+  currentRound: RoundTracker;
+  nextRoundIndex: number;
 }
 
 export interface SessionRecap {
@@ -211,6 +306,7 @@ export interface GameState {
   rules: TableRules;
   seed: string;
   startedAt: string;
+  auditMode: boolean;
   players: PlayerState[];
   shooterIndex: number;
   point: PointNumber | null;
@@ -219,6 +315,7 @@ export interface GameState {
   stats: SessionStats;
   logs: RollLogEntry[];
   recap: SessionRecap;
+  audit: AuditState;
 }
 
 export interface BetPlacementInput {
@@ -233,6 +330,7 @@ export interface EngineConfig {
   rules?: Partial<TableRules>;
   aiCount?: number;
   humanName?: string;
+  auditMode?: boolean;
 }
 
 export interface SeatPosition {
@@ -249,4 +347,19 @@ export interface PersistedPreferences {
   freePractice: boolean;
   compactStatsExpanded: boolean;
   seatPositions: Record<string, SeatPosition>;
+}
+
+export interface AuditExport {
+  simVersion: string;
+  auditMode: boolean;
+  rngSeed: string;
+  sessionId: string;
+  config: {
+    rules: TableRules;
+    aiCount: number;
+    humanName: string;
+  };
+  rounds: RoundSummary[];
+  rolls: RollAuditRecord[];
+  invariantFailures: InvariantFailure[];
 }

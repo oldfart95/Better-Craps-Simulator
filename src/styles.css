@@ -497,6 +497,52 @@ h3 {
   font-size: 0.84rem;
 }
 
+.audit-panel,
+.error-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.seed-input {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.seed-input input {
+  width: 100%;
+  padding: 0.62rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(12, 9, 8, 0.45);
+  color: var(--ink);
+}
+
+.audit-note {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.audit-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.error-panel {
+  border-color: rgba(238, 155, 118, 0.34);
+  background: linear-gradient(180deg, rgba(72, 35, 28, 0.96), rgba(39, 23, 20, 0.96));
+}
+
+.error-panel ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--warn);
+}
+
 .roll-button {
   min-width: 120px;
   font-weight: 900;

@@ -1,5 +1,4 @@
-import { POINT_NUMBERS } from './constants';
-import { GameState, PointNumber, RollResult } from './types';
+import { GameState, RollContextKind } from './types';
 
 export function isComeOut(state: GameState) {
   return state.point === null;
@@ -20,25 +19,28 @@ export function rotateShooter(state: GameState) {
   state.point = null;
 }
 
-export function applyPointState(state: GameState, roll: RollResult, detail: string[]) {
-  if (state.point === null && POINT_NUMBERS.includes(roll.total as PointNumber)) {
-    const nextPoint = roll.total as PointNumber;
+export function applyRollPhaseTransition(state: GameState, classification: RollContextKind, total: number, detail: string[]) {
+  if (classification === 'point_established') {
+    const nextPoint = total as keyof typeof state.stats.pointEstablished;
     state.point = nextPoint;
     state.stats.pointEstablished[nextPoint] += 1;
     detail.push(`Point is set to ${nextPoint}.`);
-    return;
+    return ['point_established'];
   }
 
-  if (state.point !== null && roll.total === state.point) {
+  if (classification === 'point_made' && state.point !== null) {
     state.stats.pointMade[state.point] += 1;
     detail.push(`Point ${state.point} made. Back to the come-out.`);
     state.point = null;
-    return;
+    return ['point_made', 'point_cleared'];
   }
 
-  if (state.point !== null && roll.total === 7) {
+  if (classification === 'seven_out') {
     state.stats.sevenOuts += 1;
     detail.push('Seven-out. Shooter changes and the puck turns off.');
     rotateShooter(state);
+    return ['seven_out', 'shooter_rotated', 'point_cleared'];
   }
+
+  return classification === 'natural' || classification === 'craps' ? [classification] : [];
 }

@@ -1,11 +1,13 @@
 import { AI_ARCHETYPES, BET_ZONES, DEFAULT_RULES, POINT_NUMBERS } from './constants';
+import { asPayouts, buildAuditExport, checkRollInvariants, classifyRollContext, createReasoning, createRoundTracker, createSessionId, finalizeRound, getTablePhase, snapshotAllBets, SIM_VERSION, updateRoundTracker } from './audit';
 import { reserveBet, clampAmount } from './bankroll';
 import { rollDice } from './diceEngine';
 import { getLegalActionSet } from './legalBets';
 import { resolveAllBets } from './payoutLogic';
-import { applyPointState } from './shooterFlow';
+import { applyRollPhaseTransition } from './shooterFlow';
 import { appendRollLog, createInitialBankrollEntry, createSessionStats, pointZeros, recordRollStats, snapshotBankrolls } from './stats';
 import {
+  AuditExport,
   AIArchetypeKey,
   BatchResult,
   BatchSessionRow,
@@ -18,6 +20,7 @@ import {
   PlayerState,
   PointNumber,
   RollLogEntry,
+  RollAuditRecord,
   SessionRecap,
   TableRules
 } from './types';
@@ -47,6 +50,7 @@ function createPlayer(name: string, kind: 'human' | 'ai', archetype: string, ban
 export function createInitialState(config: EngineConfig = {}): GameState {
   const rules: TableRules = { ...DEFAULT_RULES, ...config.rules };
   const aiCount = config.aiCount ?? 0;
+  const seed = config.seed?.trim() || `session-${Date.now()}`;
   const archetypes = Object.keys(AI_ARCHETYPES);
   const players = [
     createPlayer(config.humanName ?? 'You', 'human', 'human', rules.startingBankroll),
@@ -54,11 +58,12 @@ export function createInitialState(config: EngineConfig = {}): GameState {
       createPlayer(`Seat ${index + 2}`, 'ai', archetypes[index % archetypes.length], rules.startingBankroll)
     )
   ];
-
-  return {
+  const sessionId = createSessionId(seed);
+  const baseState = {
     rules,
-    seed: config.seed ?? '',
+    seed,
     startedAt: new Date().toISOString(),
+    auditMode: config.auditMode ?? false,
     players,
     shooterIndex: 0,
     point: null,
@@ -70,7 +75,20 @@ export function createInitialState(config: EngineConfig = {}): GameState {
       title: 'Table ready',
       detail: 'Select a chip, tap a felt area, and place a legal wager.',
       bankrollDelta: 0,
-      tone: 'neutral'
+      tone: 'neutral' as const
+    }
+  };
+
+  return {
+    ...baseState,
+    audit: {
+      sessionId,
+      rngSeed: seed,
+      rolls: [],
+      rounds: [],
+      invariantFailures: [],
+      currentRound: createRoundTracker(baseState, 1),
+      nextRoundIndex: 2
     }
   };
 }
@@ -160,13 +178,22 @@ export function advanceRoll(state: GameState, rng: RNG) {
 
   const humanBefore = state.players[0].bankroll;
   const shooterName = state.players[state.shooterIndex].name;
+  const shooterId = state.players[state.shooterIndex].id;
+  const phaseBefore = getTablePhase(state.point);
   const pointBefore = state.point;
+  const betsBefore = snapshotAllBets(state);
   const roll = rollDice(rng);
   const detail: string[] = [];
+  const classification = classifyRollContext(phaseBefore, pointBefore, roll.total);
 
+  // Every live roll now flows through the same sequence: classify, resolve bets,
+  // apply point/shooter transitions, then validate the resulting record.
   recordRollStats(state, roll);
-  resolveAllBets(state, roll, detail);
-  applyPointState(state, roll, detail);
+  const betsResolved = resolveAllBets(state, roll, detail);
+  const transitionEvents = applyRollPhaseTransition(state, classification, roll.total, detail);
+  const phaseAfter = getTablePhase(state.point);
+  const detectedEvents = Array.from(new Set([classification, ...transitionEvents]));
+  updateRoundTracker(state.audit.currentRound, classification, roll.total, pointBefore);
 
   const delta = Math.round((state.players[0].bankroll - humanBefore) * 100) / 100;
   state.recap =
@@ -175,6 +202,38 @@ export function advanceRoll(state: GameState, rng: RNG) {
       : delta < 0
         ? recordRecap('Pressure roll', `Your layout dropped $${Math.abs(delta).toFixed(2)}.`, delta, 'warn')
         : recordRecap('Table flow', detail[0] ?? 'No direct bankroll change on your layout.', 0, 'neutral');
+
+  const auditRecord: RollAuditRecord = {
+    sessionId: state.audit.sessionId,
+    rollIndex: state.stats.totalRolls,
+    shooterId,
+    shooterName,
+    dice: [roll.d1, roll.d2],
+    total: roll.total,
+    phaseBefore,
+    pointBefore,
+    phaseAfter,
+    pointAfter: state.point,
+    classification,
+    detectedEvents,
+    betsBefore,
+    betsResolved,
+    payouts: asPayouts(betsResolved),
+    bankrollBefore: Math.round(humanBefore * 100) / 100,
+    bankrollAfter: Math.round(state.players[0].bankroll * 100) / 100,
+    reasoning: createReasoning(classification, detail)
+  };
+  const failures = checkRollInvariants(auditRecord);
+  if (failures.length > 0) {
+    state.audit.invariantFailures.push(...failures);
+  }
+  if (state.auditMode) {
+    state.audit.rolls.push(auditRecord);
+  }
+
+  if (detectedEvents.includes('seven_out')) {
+    finalizeRound(state, 'seven_out');
+  }
 
   const entry: RollLogEntry = {
     id: uid('log'),
@@ -185,7 +244,7 @@ export function advanceRoll(state: GameState, rng: RNG) {
     pointBefore,
     pointAfter: state.point,
     summary: `${shooterName} rolled ${roll.total}`,
-    detail
+    detail: failures.length > 0 ? [...detail, ...failures.map((failure) => `Invariant: ${failure.message}`)] : detail
   };
   appendRollLog(state, entry);
   snapshotBankrolls(state);
@@ -260,3 +319,9 @@ export function createBatchResult(config: EngineConfig, sessions = 60, shooterTa
     rows
   };
 }
+
+export function exportAuditReport(state: GameState): AuditExport {
+  return buildAuditExport(state);
+}
+
+export { SIM_VERSION };
